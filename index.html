@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TreatmentMatching</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script> 
+    <!-- loads jquery -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <style>
+      h3#asi-questionnaire-heading { margin: 0 0 20px 5px; font-size:18px; };
+      h3 {font-size: 16px;}
+	  h4 {font-size: 40px; color: blue;}
+	  h2 {font-size: 20px; margin-top: 20px; color:darkblue;}
+	  h5 {font-size: 18px; margin-top: 20px; margin-bottom: 20px;}
+      #results {margin-top: 20px;}
+      .error {border-color: red;}
+      .error-message {color: red;}
+      .take-questionnaire { margin-left:10px;}
+      #asi-questionnaire { margin-left: 20px;border: 1px solid black;
+        padding: 10px;
+        position: absolute;
+        top: 220px;
+        left: 100px;
+        background-color: lightcyan;}
+      #asi-questionnaire div { margin-left: 30px; }
+      .glyphicon-remove { float:right; cursor:pointer; }
+
+      h3#phq-questionnaire-heading { margin: 0 0 20px 5px; font-size:18px; };
+      h3 {font-size: 16px;}
+      #results {margin-top: 20px;}
+      .error {border-color: red;}
+      .error-message {color: red;}
+      .take-questionnaire { margin-left:10px;}
+      #phq-questionnaire { 
+        margin-left: 20px;
+        border: 1px solid black;
+        padding: 10px;
+        position: absolute;
+        top: 825px;
+        left: 100px;
+        background-color: lightcyan;
+      }
+      #phq-questionnaire div { margin-left: 30px; }
+      .glyphicon-remove { float:right; cursor:pointer; }
+
+      h3#sheen-questionnaire-heading { margin: 0 0 20px 5px; font-size:18px; };
+      h3 {font-size: 16px;}
+      #results {margin-top: 20px;}
+      .error {border-color: red;}
+      .error-message {color: red;}
+      .take-questionnaire { margin-left:10px;}
+      #sheen-questionnaire { margin-left: 20px;border: 1px solid black;
+        padding: 10px;
+        position: absolute;
+        top: 900px;
+        left: 100px;
+        background-color: lightcyan;}
+      #sheen-questionnaire div { margin-left: 30px; }
+      .glyphicon-remove { float:right; cursor:pointer; }
+      .reset-button {
+        float:right;
+      }
+      .submit-button {
+        float:left;
+        margin-right:10px;
+      }
+      #results {
+        position: relative;
+        top: 0px;
+		margin-bottom: 15px;
+        background-color: lightblue;
+        padding:5px;
+        display:none;
+      }
+      #results b {
+        margin:0;
+      }
+      .sub-questionnaire-button {
+        float:right;
+        margin-left: 10px;
+      }
+      .author{
+        float:left;
+        font-size:12px;
+        margin:15px 0 15px 20px;
+      }
+    </style>
+    <script>
+      $(function(){
+        var inputs = {
+    asi:        { prompt:       'Anxiety Sensitivity Index score',
+                  type:         'number',
+                  placeholder:  'ASI score',
+                  max:          64,
+                  min:          0,
+                  linkId:       'asi-questionnaire'
+                },          
+    female:     { prompt:       'Gender',
+                  type:         'select',
+                  placeholder:  '',
+                  options:      ["---", "Male","Female"],
+                  values:       ['',     0,      1]
+                 },
+     mhs:       { prompt:        'Highest grade or year of school completed?',
+                   type:          'select',
+                   placeholder:   '',
+                   options:       ["---", "Less than high school","High school diploma", "More than high school"],
+                   values:        [0,      1,                       2,                     3],
+                   mhs_vals:      ['',     0,                       0,                     1],
+                   lhs_vals:      ['',     1,                       0,                     0]
+                 },
+    tototh:      { prompt:      'Number of prescription medications taken for medical problems (do not include medications ' +
+                                'taken for depression, anxiety, or sleep)',
+                   type:        'number',
+                   placeholder: 'Number of non-psychotropic medications',
+                   min: 0,
+                   max: 20
+                       }, 
+          laddersoc:   { prompt:      'Imagine a ladder with ten rungs on it. The ladder represents where people stand in their communities. ' +
+                     'People define "community" in different ways; please define it in whatever way is most meaningful to you. ' +
+                     'The top of the ladder (10) is where people with the highest standing in their community would be. At the bottom ' +
+                    'of the ladder (1) are people who have the lowest standing in their community. Where on this ten-rung ladder ' +
+                    'do you think you stand at this time of your life, relative to other people in your community?',
+                         type:        'number',
+                         placeholder: 'Social standing in community (1-10)',
+                  max: 10,
+                  min: 1
+
+                       },
+        satcare:     { prompt:      'How dissatisfied or satisfied were you with the overall health care available to you during the <u>past 6 months</u>?',
+                       type:        'select',
+                       options:       ['---','very dissatisfied', 'dissatisfied', 
+                                      'neither satisfied nor dissatisfied', 
+                                      'satisfied', 'very satisfied'],
+                       values:      ['', 1, 2, 3, 4, 5]
+                     },
+         phq:       { prompt:        'Patient Health Questionnaire score',
+                       type:          'number',
+                       placeholder:   'PHQ score',
+                       max: 27,
+                       min: 0,
+                       linkId:       'phq-questionnaire'
+                      },
+          totanx:      { prompt:      'Number of prescription medications taken to help with depression, anxiety or sleep',
+                         type:        'number',
+                         placeholder: 'Number of Psychotropic Meds',
+                  min: 0,
+                  max: 20
+                  },
+          black:     { prompt:       'What is your racial background?',
+                        type:         'select',
+                        placeholder:  '',
+                        options:      ["---", "American Indian/Alaska Native", "Asian", 
+											 								"Native Hawaiian or other Pacific Islander", 
+											 								"Black or African American", "White/Caucasian", 
+											 								"Other"],
+                        values:       ['',		0,		0,     0,			1,      0,			0]
+                       }
+        };             
+
+        $('form .submit-button').click(submitForm);
+        $('form .clear-button').click(function(e){
+          e.preventDefault();
+          $('input').val('');
+          $('form select').val('');
+          $('form select#input-mhs').val(0);
+          $('.sub-questionnaire select').val('-');
+          $("#results").hide();
+        })
+
+        function addElements() {
+          for (var input in inputs) {
+            var html = "";
+            var properties = inputs[input];
+            var id = input;
+            
+            if (properties.type == 'hidden')
+              continue;
+
+            html += "<div class='form-group'>"+
+            "<label for='input-" + id + "'>" + 
+                          properties.prompt + 
+            "</label>"
+            
+            if (properties.linkId) {
+              html += '<a href="#" class="take-questionnaire btn btn-primary btn-xs" data-id="' + properties.linkId + '">take questionnaire</a>'
+            }
+            
+            if (properties.type == 'number') {
+                html += "<input type='text' class='form-control' id='input-" + id + 
+              "' placeholder='" + properties.placeholder + "'>";
+            } else {
+              html += "<select type='select' class='form-control' id='input-" + id + "'>";
+              for (var i = 0; i < properties.options.length; i++) {
+                html += "<option value='" + properties.values[i] + "'>" + 
+                                            properties.options[i] + "</option>";
+              }
+              html += "</select>";
+            }
+            html += "</div>";
+            $("#submit_button").before(html);
+                          if (properties.type == 'number') {
+              bindNumberFilter('input-' + id);
+            }
+          }
+        };
+        addElements();
+        $(".take-questionnaire").click(function(e) {
+          e.preventDefault();
+          $('.sub-questionnaire').hide();
+          $('#' + $(this).data('id')).show();
+        });
+        
+        function numberFilter(e) {
+          if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+             (e.keyCode == 65 && e.ctrlKey === true) || (e.keyCode >= 35 && e.keyCode <= 39))  {
+                return;
+          }
+          if (e.shiftKey || (e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
+              e.preventDefault();
+              $(e.target).after('<p class="error-message" id="number-error"> Please enter a number</p>');
+              setTimeout(function(){$('#number-error').remove()}, 1500);
+          }
+        }
+        function bindNumberFilter(id) {
+          $("#"+id).keydown(numberFilter);
+        };
+
+        function bindErrorRemovers() {
+          for(var input in inputs) {
+            $("#input-" + input).change(function(event) {
+              var changedElement = event.target;
+              $(changedElement).next('.error-message').remove();
+              $(changedElement).removeClass('error');
+            });
+          }
+        };
+        bindErrorRemovers();
+
+        function addErrorsForOutOfRangeElements() {
+          var anyErrors = false;
+          for (var input in inputs) {
+            properties=inputs[input];
+            if (properties.type != 'number')
+              continue;
+            var val = $("#input-" + input).val();
+            if ((val < properties.min || val > properties.max) && val != '') {
+              anyErrors = true;
+              $("#input-" + input).addClass('error');
+              $("#input-" + input).after('<p class="error-message"> Please enter a number between ' +
+                                         properties.min + ' and ' + properties.max + '</p>');             
+            }
+          }
+          return anyErrors;
+        }
+	var cutPoint = -.341
+	var b_interv = -.3348613
+	var b_intervXM10 = -.9829332
+        var weights = {
+          asi:    {mean:  29.36831  , sd:   13.71691  , beta:   0.1545688  },
+          female:   {mean:  0.7146119 , sd:   0.4518571 , beta:   .1394431  },
+          mhs:    {mean:  0.792   , sd:   0.406109  , beta:   -.2275275 },
+          tototh:   {mean:  1.599315  , sd:   2.004669  , beta:   -.1180367 },
+          laddersoc:  {mean:  5.40046   , sd:   2.058656  , beta:   .1155311  },
+          lhs:    {mean:  0.0468571 , sd:   0.2114537 , beta:   -0.1852914 },
+          satcare:  {mean:  3.757159  , sd:   1.028559  , beta:   -0.0955206 },
+          phq:    {mean:  12.78682  , sd:   6.26751   , beta:   0.1064419  },
+          totanx:   {mean:  1.181507  , sd:   1.217088  , beta:   -0.1133039 },
+          black:    {mean:  0.1164384 , sd:   0.3209331 , beta:   -0.0812164 }
+        };
+
+        function submitForm(e) { 
+          e.preventDefault();
+          $(".error-message").remove();
+          $("#results").hide();
+          $("#results").html("");
+          if (addErrorsForOutOfRangeElements()) {
+            $("#results").html("<p class = 'error-message'>One or more entries is out of range.  Please correct.</p>").show();
+			window.scrollTo(0, 1000);
+            return;
+          }
+          var answers = collectAnswersFromInputs();
+          var M = calcScore(answers);
+          displayRecommendation(M);
+        }
+        
+        function replaceWithMeanIfBlank(val, input) {
+          if (val === '') 
+            return weights[input].mean;
+          else
+            return val;
+        }
+        
+        function collectAnswersFromInputs() {
+          var answers = {};
+          for (var input in inputs) {
+        
+            originalVal = $("#input-" + input).val();
+            if (input == 'mhs') {
+              answers['mhs'] = replaceWithMeanIfBlank(inputs[input].mhs_vals[originalVal], 'mhs');
+              answers['lhs'] = replaceWithMeanIfBlank(inputs[input].lhs_vals[originalVal], 'lhs');
+            }
+            else {
+              val = replaceWithMeanIfBlank(originalVal, input);
+              answers[input] = val;
+            }
+          }   
+          return answers;   
+        }        
+        
+        function calcScore(answers) {
+          console.log(answers)
+          var M = 0;
+          for (var variable in weights) {
+            val = answers[variable]
+            if (val == '-')
+              val = 0;
+            p = weights[variable]
+            M += p.beta * ((val - p.mean) / p.sd);
+          }
+          return M;   
+        }
+        
+        function displayRecommendation(M) {
+          $("#results").show();
+          $("#results").html("");
+          var cbt = "<i>Cognitive Behavioral Therapy (CBT)/Medication</i>: You will likely have the greatest improvement in " +
+			"your anxiety symptoms if you are treated by an anxiety specialist with either cognitive behavioral therapy or anti-anxiety medication " +
+			"or both. You may choose which treatment method (therapy or medication or both) you prefer. Please discuss " +
+			"these recommendations with your health care provider";
+          var uc = "<i>Usual Care</i>: You will likely have the greatest improvement in your anxiety symptoms if you continue to "+
+          "receive the treatment provided or recommended by your primary care provider.  This may include continued treatment of "+
+          "medical conditions, referral to a mental health professional, or no additional treatment.  Please discuss these recommendations "+
+          "with your health care provider";
+          var recommendation = M > cutPoint ? cbt : uc 
+          $("#results").append("<p><p><b>Recommended Treatment:</b><p> " + recommendation + "</p>");
+          var size = Math.abs(b_interv + b_intervXM10*M);       
+          var strength = '';
+          if(M >= -.20)
+            strength = '<i>Strong</i> - The recommended treatment is strongly preferred over continuing with '+
+			'treatment provided or recommended by your primary care provider';
+          else if (M >= -.56 && M <-.20)
+            strength = '<i>Weak</i> - There is a slight preference for the recommended treatment, however '+
+			'you are likely to have the same reduction in anxiety if you continue with the treatment provided '+
+			'or recommended by your primary care provider '+
+			'OR if you receive cognitive behavioral therapy and/or anti-anxiety medication from an anxiety specialist';
+          else if (M <-.56)
+            strength = '<i>Strong</i> - The recommended treatment is strongly preferred over seeking '+
+			'cognitive behavioral therapy or anti-anxiety medication from an anxiety specialist';
+		  var size_sml = '';
+          if(size >= .8)
+            size_sml = 'large effect size';
+          else if (size >= .3 && size <.8)
+            size_sml = 'medium effect size';
+          else if (size <.3)
+            size_sml = 'small effect size';
+          $("#results").append("<p><p><b>Expected standardized difference in outcome:</b><p> " + Math.round(size * 100) / 100 + " (" + size_sml + ")" +"</p>");
+          $("#results").append("<p><p><b>Confidence in recommendation:</b><p> " + strength + "</p>");
+          window.scrollTo(0, 5000);
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h4>Treatment Matching Calculator</h4>
+	  <h2>Evidence Based Anxiety Treatment vs. Usual Care for Anxiety Disorders</h2>
+      <h5>This calculator identifies which of two treatments may be most effective for you based on the best data available.
+    Complete as many of the items below as you can. The more items you complete, the more precise your recommendation 
+    will be. </h5>
+      <div class='col-md-6'>
+        <form class="form-horizontal" id ="the_form">
+
+          <div class="form-group" id="submit_button">
+              <button class="submit-button btn btn-small btn-primary">Submit</button>
+              <button class='clear-button btn btn-small'>Clear</button>
+              <div id='results' style='vertical-align:'>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+    
+    
+    <div id='asi-questionnaire' class='sub-questionnaire' style='display:none;'>
+      <a class="glyphicon glyphicon-remove" aria-hidden="true" onClick="$('#asi-questionnaire').hide();"></a>
+      <h3 id='asi-questionnaire-heading'>
+        To what extent are the following statements true for you?
+      </h3>
+      <form data-related-input='input-asi'>
+        <div class="form-group">
+          <label>It is very important for me not to appear nervous.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>When I cannot keep my mind on a task, I worry that I might be going crazy.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when I feel shaky.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when I feel faint.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It is important to me to stay in control of my emotions.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when my heart beats rapidly.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It embarrasses me when my stomach growls.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when I am nauseous.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>When I notice my heart is beating rapidly, I worry that I might have a heart attack.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when I become short of breath.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>When my stomach is upset, I worry that I might be seriously ill.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when I am unable to keep my mind on a task.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Other people notice when I feel shaky.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unusual body sensations scare me.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>When I am nervous, I worry that I might be mentally ill.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>It scares me when I am nervous.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>very little</option>
+            <option value='1'>a little</option>
+            <option value='2'>some</option>
+            <option value='3'>much</option>
+            <option value='4'>very much</option>
+          </select>
+        </div>
+      </form>
+      <button class='sub-questionnaire-button submit-sub-questionnaire btn btn-small btn-primary'>Submit</button>
+    </div>
+    <div id='phq-questionnaire' class='sub-questionnaire' style='display:none;'>
+      <a class="glyphicon glyphicon-remove" aria-hidden="true" onClick="$('#phq-questionnaire').hide();"></a>
+      <h3 id='phq-questionnaire-heading'>
+      Over the last 2 weeks, how often have you been bothered by any of the following problems?
+      </h3>
+      <form data-related-input='input-phq'>
+        <div class="form-group">
+          <label>Little interest or pleasure in doing things.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Feeling down depressed or hopeless.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Trouble falling or staying asleep, or sleeping too much.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Feeling tired or having little energy.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Poor appetite or overeating</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Feeling bad about yourself—or that your are a failure or have let yourself or your family down.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Trouble concentrating on things, such as reading the newspaper or watching television.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>
+            <p>Moving or speaking so slowly that other people could have noticed? </p>
+            <p>Or the opposite---being so fidgety or restless that you have been moving around a lot more than usual.</p>
+          </label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Thoughts that you would be better off dead or of hurting yourself in some way.</label>
+          <select>
+            <option value='-'>--</option>
+            <option value='0'>not at all</option>
+            <option value='1'>several days</option>
+            <option value='2'>more than half the days</option>
+            <option value='3'>nearly every day</option>
+          </select>
+        </div>
+      </form>
+      <button class='sub-questionnaire-button submit-sub-questionnaire btn btn-small btn-primary'>Submit</button>
+    </div>    
+  <script>
+    $('.sub-questionnaire select').change(function(e) {
+      var $form = $(e.target).parents('form');
+      var sum = 0;
+      var answeredSomething = false;
+      $form.find('select').each(function() {
+        if ($(this).val() != '-') {
+          sum += Number($(this).val());
+          answeredSomething = true;
+        }
+      });
+      if (answeredSomething)
+        $('#' + $form.data('related-input')).val(sum);
+      else
+        $('#' + $form.data('related-input')).val('');
+    });
+    $('.reset-button').click(function(e) {
+      var $form = $(e.target).prev();
+      $form.find('select').val('-')
+    });
+    $('.submit-sub-questionnaire').click(function(e) {
+      var $questionnaireDiv = $(e.target).parents('div');
+      $questionnaireDiv.hide();
+    });
+  </script>
+
+  <div class='author'>Created by Andrea N. Niles, Ph.D., University of California, Los Angeles</div>
+    
+  </body>
+</html>
+
+
+<!-- // "form" "div" "h1" are tags each tag can have an id or a class-->
